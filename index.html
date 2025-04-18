@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IG 限時動態 模擬</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+
+    .story-wrapper {
+      padding: 0 20px;
+      background: white;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .story-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 16px;
+      scrollbar-width: thin;
+      padding: 10px 0;
+    }
+
+    .story {
+      flex: 0 0 auto;
+      width: 70px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .story-img-wrapper {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid #e1306c;
+      padding: 2px;
+      background-color: white;
+      overflow: hidden;
+      margin: 0 auto;
+      transition: border 0.3s, transform 0.3s;
+    }
+
+    .story-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .story.active .story-img-wrapper {
+      border: 3px solid #0099ff;
+      transform: scale(1.1);
+    }
+
+    .story-name {
+      font-size: 12px;
+      margin-top: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .content {
+      padding: 20px;
+      background: #fff;
+      min-height: 200px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .story-container::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .story-container::-webkit-scrollbar-thumb {
+      background: #bbb;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .story {
+        width: 60px;
+      }
+
+      .story-img-wrapper {
+        width: 50px;
+        height: 50px;
+      }
+
+      .story-name {
+        font-size: 10px;
+      }
+
+      .content {
+        font-size: 14px;
+        padding: 15px;
+      }
+
+      .story-wrapper {
+        padding: 0 10px;
+      }
+    }
+
+    /* ✅ Modal 樣式 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      width: 100%;
+      max-width: 360px;
+      height: 640px;
+      background-color: white;
+      border-radius: 12px;
+      overflow: auto;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+      animation: fadeInUp 0.3s ease-in-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .story-img-wrapper.bff {
+  border: 3px solid #35c85a; /* IG 摯友的綠綠色 */
+}
+.story-img-wrapper.viewed {
+  border: 3px solid #acacac; /* 灰色代表已看過 */
+}
+  </style>
+</head>
+<body>
+
+  <div class="story-wrapper">
+    <div class="story-container" id="storyList">
+      <!-- 限動帳號會透過 script 生成 -->
+    </div>
+  </div>
+
+  <div class="content" id="storyContent">
+    請點選上方限動查看內容
+  </div>
+
+  <!-- ✅ Modal 容器 -->
+  <div id="storyModal" class="modal">
+    <div class="modal-content" id="modalContent">
+      <!-- 限動內容會顯示在這 -->
+    </div>
+  </div>
+
+  <script>
+      // ✅ 多張限動圖片資料
+  const storyData = [
+    {
+      username: "minjis_njz",
+      images: [
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1",
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1"
+      ]
+    },
+    {
+      username: "hanni_njz",
+      images: [
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1",
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1"
+      ]
+    },
+    {
+      username: "Danielle_njz",
+      images: [
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1",
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1"
+      ]
+    },
+    {
+      username: "haerin_njz",
+      images: [
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1",
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1"
+      ]
+    },
+    {
+      username: "hyein_njz",
+      images: [
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1",
+        "https://i0.wp.com/attach.setn.com/newsimages/2023/11/29/4428960-PH.jpg?w=696&quality=100&ssl=1"
+      ]
+    },
+    {
+      username: "jackson4444_tf",
+      images: [
+        "https://cdn2.ettoday.net/images/6458/d6458005.jpg",
+        "https://cdn2.ettoday.net/images/6458/d6458005.jpg"
+      ]
+    },
+    {
+      username: "karry111_tf",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "roy33_tf",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "jennie_she",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "hebe_she",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "sellina_she",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "jisoo_bp",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "lisa_bp",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "rose_bp",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "howei_cool",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "Sandy_wang",
+      images: [
+        "https://scontent.ftpe8-3.fna.fbcdn.net/v/t39.30808-6/491351908_3143430195804295_701722148012764245_n.jpg?stp=dst-jpg_p526x296_tt6&_nc_cat=107&ccb=1-7&_nc_sid=127cfc&_nc_ohc=WtWqvCLpQBoQ7kNvwGdRU3K&_nc_oc=AdkRExcB5IqvU5QOsNVbJU6XCNA4LZgXEiH2VilXQezxRFh83FOg0ayVc6eHm_zp8vY&_nc_zt=23&_nc_ht=scontent.ftpe8-3.fna&_nc_gid=JbWV9_1DQZI5ajjxRDPdPw&oh=00_AfGYyuqbVTPWxHn0vFihb0Txy4h6indQYW9eUimElQb5_w&oe=68085418",
+        "https://scontent.ftpe8-3.fna.fbcdn.net/v/t39.30808-6/491351908_3143430195804295_701722148012764245_n.jpg?stp=dst-jpg_p526x296_tt6&_nc_cat=107&ccb=1-7&_nc_sid=127cfc&_nc_ohc=WtWqvCLpQBoQ7kNvwGdRU3K&_nc_oc=AdkRExcB5IqvU5QOsNVbJU6XCNA4LZgXEiH2VilXQezxRFh83FOg0ayVc6eHm_zp8vY&_nc_zt=23&_nc_ht=scontent.ftpe8-3.fna&_nc_gid=JbWV9_1DQZI5ajjxRDPdPw&oh=00_AfGYyuqbVTPWxHn0vFihb0Txy4h6indQYW9eUimElQb5_w&oe=68085418"
+      ]
+    },
+    {
+      username: "paul_lee",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "choco_pei",
+      images: [
+        "https://i.imgur.com/1n74rNq.jpeg",
+        "https://i.imgur.com/QM2NkGy.jpeg"
+      ]
+    },
+    {
+      username: "emily_chen",
+      images: [
+        "https://i.imgur.com/jQ9azVu.jpeg",
+        "https://i.imgur.com/xHL6Qol.jpeg",
+        "https://i.imgur.com/vVfWof2.jpeg"
+      ]
+    },
+    {
+      username: "david_lu",
+      images: [
+        "https://i.imgur.com/uh3uPZ4.jpeg"
+      ]
+    }
+  ];
+
+
+    const users = [
+      "minjis_njz", "hanni_njz", "Danielle_njz", "haerin_njz", "hyein_njz",
+      "jackson4444_tf", "karry111_tf", "roy33_tf", "jennie_she", "hebe_she",
+      "sellina_she", "jisoo_bp", "lisa_bp", "rose_bp", "howei_cool",
+      "Sandy_wang", "paul_lee", "choco_pei", "emily_chen", "david_lu"
+    ];
+
+    const avatars = [
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWYRTUpnKC15mbK56NogZmMMStoiA3_T3o3g&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBE8rgMYdigjPZI6VTf1k3ZbRrLko8cU_OKw&s",
+      "https://cdn.kagit.kr/2023/08/11/Danielle1_cef7148223.png",
+      "https://preview.redd.it/220922-haerin-v0-3m8dvnevkucd1.jpg?width=510&format=pjpg&auto=webp&s=ff52e2272906829a2c717e059f35aa6d92cd705f",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJwLh10UKoiyaTNMz6_GWE3xgxcgCKRiuVaw&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHVvdvm4ZFecofOsdUnGrRGdcGWHLbaxRTJQ&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkSIuzGKc1OScfXJKjsGf83dK353vjM3k79g&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTD-MNCVI54NFD6DT3A7xVFLx_BTWg3GLhDkQ&s",
+      "https://scontent.ftpe8-2.fna.fbcdn.net/v/t39.30808-1/324731191_574419567554251_8775735203424951755_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=103&ccb=1-7&_nc_sid=e99d92&_nc_ohc=cIY0c5-OhSAQ7kNvwHs4cQi&_nc_oc=AdnUUjENDKQe9O2ftsp_z3hZW87fWHQIubQBtOnrJC3JOSLoMKSsBaWC5tf_qLG5Bus&_nc_zt=24&_nc_ht=scontent.ftpe8-2.fna&_nc_gid=ajlVvYXxMyTKjg6MqeV2bA&oh=00_AfHuB7r1nhCEJ-YRZmyqpRpvZbeqyBS5WfCpFIYILBBeuA&oe=6808669B",
+      "https://hips.hearstapps.com/hmg-prod/images/snapinsta-app-1080-332566582-226314306719033-5731130855891405191-n-640fe59db7883.jpg?crop=1.00xw:0.607xh;0,0.324xh&resize=980:*",
+      "https://hips.hearstapps.com/hmg-prod/images/she-1536755263.jpg?crop=0.502xw:1.00xh;0,0&resize=1200:*",
+      "https://tools.kagit.kr/api/proxy/image?url=https%3A%2F%2Ffimg6.pann.com%2Fnew%2Fdownload.jsp%3FFileID%3D68568761",
+      "https://dg9ugnb21lig7.cloudfront.net/uploads/ckeditor/pictures/Beautynew-/content_20201019042726CpebZATmYl.jpg",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGbMY7c0pH6hPeHvTAb2afTdfZTtQNhnoE8Q&s",
+      "https://scontent.ftpe8-3.fna.fbcdn.net/v/t39.30808-6/454501286_3858640724419442_3499948937083812423_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=acvb6eBDiOAQ7kNvwGE3vlx&_nc_oc=Adntp4uxEJ3qXl5uhbKyFBrRNDpXo1f1cch-UzhqsUKSPxtEmv4h9BLjO2oecAli7Fo&_nc_zt=23&_nc_ht=scontent.ftpe8-3.fna&_nc_gid=loX8zzDHjN3Ns9iXt4Vb4w&oh=00_AfGFH4SLVBwGf7D4qxQ_d9xdtXyqvQhBBxZlWj4nB4PDmg&oe=680845AC",
+      "https://scontent.ftpe8-2.fna.fbcdn.net/v/t39.30808-6/463306762_2970051559808827_8979409184611756308_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=dtL4JYIK5sAQ7kNvwFcvXjT&_nc_oc=AdkNMpOZOCVFyRTwgpTPIljpZ30usqV_058K7gJpWzuWcq9G6Fjzy7qZ-qEHesnRQsk&_nc_zt=23&_nc_ht=scontent.ftpe8-2.fna&_nc_gid=pFFHW_dkp-iqEhZ9fLaV1A&oh=00_AfFYbxE3DJNYTKm0-uQ7iY_umppIFXHhtKT9uW1yZn5Qxw&oe=68084392",
+      "https://scontent.ftpe8-3.fna.fbcdn.net/v/t39.30808-6/427899367_1474906243094217_1430270234761555391_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=7xmr8j6RGn4Q7kNvwGa68p5&_nc_oc=AdkBlEbA20vWlEm3GkHqrrY3sRHe2jEbNNFKbJb1bCJCVVf9TCB9WNT0qkDYFu-2qic&_nc_zt=23&_nc_ht=scontent.ftpe8-3.fna&_nc_gid=ktEg807WxgL1QzNPvM5L3w&oh=00_AfHWa8tNL02xFuhRmg8vm3BEo4_oEB1om2jhBluguaJWqg&oe=680839BC",
+      "https://scontent.ftpe8-3.fna.fbcdn.net/v/t39.30808-1/480821623_3079018505583121_1848582589680355959_n.jpg?stp=c0.0.1044.1044a_dst-jpg_s200x200_tt6&_nc_cat=111&ccb=1-7&_nc_sid=1d2534&_nc_ohc=oeMNxWqr9QUQ7kNvwF3kSbi&_nc_oc=Adkprp6DALfyKnuYZF5adEWv28q7NfdPfY4-Guer3KHDKqBOF4gEz136t7RWYM41yIw&_nc_zt=24&_nc_ht=scontent.ftpe8-3.fna&_nc_gid=pEAbQ04xtLRXWZTU8ZCPzg&oh=00_AfFlQ1IGR5l1BAN98C7FmnqDKP2RPcZb78hTOkUFfpW2hw&oe=68084C4F",
+      "https://randomuser.me/api/portraits/women/16.jpg",
+      "https://randomuser.me/api/portraits/men/16.jpg"
+    ];
+
+    const storyList = document.getElementById("storyList");
+  storyList.innerHTML = `
+    <div class="story" id="addStory" title="新增限動">
+      <div class="story-img-wrapper" style="border: 2px dashed #aaa; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #aaa;">
+        +
+      </div>
+      <div class="story-name">新增限動</div>
+    </div>
+  ` + users.map((username, index) => `
+    <div class="story" data-username="${username}">
+      <div class="story-img-wrapper 
+        ${['jackson4444_tf', 'jennie_she'].includes(username) ? 'bff' : ''}
+        ${['emily_chen', 'david_lu'].includes(username) ? 'viewed' : ''}">
+        <img src="${avatars[index]}" alt="${username}">
+      </div>
+      <div class="story-name">${username}</div>
+    </div>
+  `).join("");
+
+
+  // ✅ Modal 開啟 & 限動播放邏輯
+  let currentTimer = null;
+
+  document.querySelectorAll('.story').forEach(story => {
+    if (story.id !== "addStory") {
+      story.addEventListener('click', () => {
+        document.querySelectorAll('.story').forEach(s => s.classList.remove('active'));
+        story.classList.add('active');
+
+        const username = story.getAttribute('data-username');
+        const userStory = storyData.find(u => u.username === username);
+        const avatarUrl = story.querySelector('img').src;
+
+        if (userStory && userStory.images && userStory.images.length > 0) {
+          let currentIndex = 0;
+
+          const showImage = (index) => {
+            const imgUrl = userStory.images[index];
+
+            document.getElementById('modalContent').innerHTML = `
+              <div style="position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+
+                <!-- 頭像與帳號 -->
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px;">
+                  <img src="${avatarUrl}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                  <span style="font-weight: bold;">${username}</span>
+                </div>
+
+                <!-- 限時圖片 -->
+                <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                  <img src="${imgUrl}" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
+                </div>
+
+                <!-- 回應與愛心 -->
+                <div style="padding: 12px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #ddd;">
+                  <input type="text" placeholder="傳送訊息..." style="flex-grow: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px;">
+                  <button style="margin-left: 12px; background: none; border: none; font-size: 20px; color: #e1306c; cursor: pointer;">♡</button>
+                </div>
+              </div>
+            `;
+          };
+
+          const playStory = () => {
+            showImage(currentIndex);
+
+            currentTimer = setTimeout(() => {
+              currentIndex++;
+              if (currentIndex < userStory.images.length) {
+                playStory();
+              } else {
+                document.getElementById('storyModal').style.display = 'none';
+                story.classList.remove('active');
+              }
+            }, 2500);
+          };
+
+          clearTimeout(currentTimer);
+          document.getElementById('storyModal').style.display = 'flex';
+          playStory();
+        } else {
+          document.getElementById('modalContent').innerHTML = `<p style="text-align:center;">尚無限動內容</p>`;
+          document.getElementById('storyModal').style.display = 'flex';
+        }
+      });
+    }
+  });
+
+  // ✅ 點擊背景關閉 modal
+  document.getElementById('storyModal').addEventListener('click', function (e) {
+    if (e.target === this) {
+      this.style.display = 'none';
+      clearTimeout(currentTimer);
+      document.querySelectorAll('.story').forEach(s => s.classList.remove('active'));
+    }
+  });
+</script>
+
+</body>
+</html>
+
